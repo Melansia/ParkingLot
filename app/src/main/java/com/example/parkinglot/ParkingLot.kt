@@ -3,7 +3,7 @@ package com.example.parkinglot
 fun main() {
     var carPark = ParkingLot(0)
     while (true) {
-        val action = readln().split(" ")
+        val action = readln().replace("_", " ").split(" ")
 
         when (action.first()) {
             "exit" -> break
@@ -14,6 +14,7 @@ fun main() {
             "park" -> carPark.park(Car(action[1], action[2].capitalize()))
             "leave" -> carPark.leave(action[1].toInt())
             "status" -> carPark.status()
+            "spot", "reg" -> carPark.carSpotting(action[0], action[2], action[3])
         }
     }
 }
@@ -21,7 +22,7 @@ fun main() {
 
 data class Car(val regNumber: String?, val color: String?)
 
-class ParkingLot(var size: Int) {
+class ParkingLot(size: Int) {
     private val parkingLot = MutableList<Car?>(size) { null }
     private val freeParingSpot = MutableList(size) { true }
 
@@ -70,6 +71,69 @@ class ParkingLot(var size: Int) {
             }
         } catch (e: Error) {
             println("Status ${e.message}")
+        }
+    }
+
+    fun carSpotting(action: String, by: String, parameter: String) {
+        if (freeParingSpot.size < 1) return println("Sorry, a parking lot has not been created.")
+        if (action == "spot" && by == "color") findSpotByColor(parameter.uppercase())
+        if (action == "spot" && by == "reg") findSpotByReg(parameter)
+        if (action == "reg" && by == "color") findRegByColor(parameter.uppercase())
+    }
+
+    private fun findRegByColor(color: String) {
+        val result = mutableSetOf<String>()
+        val occupied = freeParingSpot.indexOfFirst { true }
+        var firstOccupied = occupied
+
+        for (i in 0..parkingLot.lastIndex) {
+            if (parkingLot[firstOccupied]?.color?.uppercase() == color) {
+                result.add("${parkingLot[firstOccupied]?.regNumber}")
+            }
+            firstOccupied++
+        }
+        if (result.isEmpty()) {
+            println("No cars with color ${color.uppercase()} were found.")
+        } else {
+            println(result.joinToString(", "))
+        }
+    }
+
+    private fun findSpotByColor(color: String) {
+
+        val result = mutableSetOf<Any>()
+        val occupied = freeParingSpot.indexOfFirst { true }
+        var firstOccupied = occupied
+
+        for (i in 0..parkingLot.lastIndex) {
+            if (parkingLot[firstOccupied]?.color?.uppercase() == color) {
+                result.add(firstOccupied + 1)
+            }
+            firstOccupied++
+        }
+        if (result.isEmpty()) {
+            println("No cars with color ${color.uppercase()} were found.")
+        } else {
+            println(result.joinToString(", "))
+        }
+    }
+
+    private fun findSpotByReg(regNumber: String) {
+
+        val occupied = freeParingSpot.indexOfFirst { true }
+        var firstOccupied = occupied
+
+        var result = ""
+        for (i in 0..parkingLot.lastIndex) {
+            if (parkingLot[firstOccupied]?.regNumber == regNumber) {
+                result = "${firstOccupied + 1}"
+            }
+            firstOccupied++
+        }
+        if (result.isEmpty()) {
+            println("No cars with registration number $regNumber were found.")
+        } else {
+            println(result)
         }
     }
 }
